@@ -1,0 +1,1 @@
+{ "name": "Army-of-abyss", "plugins": [ { "name": "postgresql" } ], "deploy": { "startCommand": "node dist/index.js", "env": { "NODE_ENV": "production" } } }
