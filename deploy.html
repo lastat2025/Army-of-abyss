@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Army of the Abyss — Contract Deployer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #04060a 0%, #1a0a1a 100%);
+            color: #c8b99a;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: rgba(15,10,20,0.95);
+            border: 2px solid #8b0000;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 0 30px rgba(139,0,0,0.3);
+        }
+        h1 {
+            font-size: 2rem;
+            color: #ffd700;
+            margin-bottom: 10px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #00ffcc;
+            font-size: 0.9rem;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+        }
+        .section {
+            background: rgba(8,4,16,0.8);
+            border: 1px solid rgba(139,0,0,0.4);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            color: #ffd700;
+            font-weight: bold;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+        input, button {
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(139,0,0,0.5);
+            background: rgba(4,6,10,0.9);
+            color: #c8b99a;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        button {
+            background: linear-gradient(135deg, #8b0000, #5a0000);
+            color: #ffd700;
+            cursor: pointer;
+            font-weight: bold;
+            border: 2px solid #8b0000;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: linear-gradient(135deg, #c00000, #8b0000);
+            box-shadow: 0 0 20px rgba(139,0,0,0.6);
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .output {
+            background: rgba(4,6,10,0.9);
+            border: 1px solid rgba(0,255,204,0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            color: #00ffcc;
+            font-size: 0.85rem;
+            max-height: 300px;
+            overflow-y: auto;
+            word-break: break-all;
+        }
+        .status {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .status.pending {
+            background: rgba(255,215,0,0.2);
+            color: #ffd700;
+            border: 1px solid #ffd700;
+        }
+        .status.success {
+            background: rgba(0,255,136,0.2);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+        }
+        .status.error {
+            background: rgba(255,26,26,0.2);
+            color: #ff1a1a;
+            border: 1px solid #ff1a1a;
+        }
+        .copy-btn {
+            background: #004d7a;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            width: auto;
+            display: inline-block;
+        }
+        .copy-btn:hover {
+            background: #006fa8;
+        }
+        .warning {
+            color: #ff6a00;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(255,106,0,0.1);
+            border-left: 2px solid #ff6a00;
+            border-radius: 4px;
+        }
+        .success-box {
+            background: rgba(0,255,136,0.1);
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .success-box h2 {
+            color: #00ff88;
+            margin-bottom: 12px;
+        }
+        .contract-address {
+            background: rgba(4,6,10,0.9);
+            padding: 12px;
+            border-radius: 6px;
+            word-break: break-all;
+            color: #ffd700;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>⚔️ ARMY OF THE ABYSS</h1>
+    <div class="subtitle">SMART CONTRACT DEPLOYER — BASE MAINNET</div>
+
+    <div class="section">
+        <div class="section-title">1️⃣ CONNECT WALLET</div>
+        <button onclick="connectWallet()" id="connectBtn">CONNECT METAMASK</button>
+        <div class="status" id="walletStatus" style="display:none;"></div>
+        <div id="walletInfo" style="display:none; color: #00ffcc; font-size: 0.8rem; margin-top: 10px;">
+            <div>Wallet: <span id="walletAddr"></span></div>
+            <div>Balance: <span id="walletBal"></span> ETH</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">2️⃣ VERIFY HOUSE WALLET</div>
+        <div style="background: rgba(0,255,204,0.1); padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #00ffcc;">
+            <div style="font-size: 0.8rem; color: #00ffcc;">HOUSE WALLET (receives 5% tax):</div>
+            <div style="color: #ffd700; word-break: break-all; margin-top: 4px;">0x9E1d192bd9c4dc67617D47381090DDb84db8d6C5</div>
+        </div>
+        <div class="warning">✓ Hardcoded in contract — All 5% house fees go here automatically.</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">3️⃣ DEPLOY CONTRACT</div>
+        <button onclick="deployContract()" id="deployBtn" disabled>DEPLOY TO BASE MAINNET</button>
+        <div class="status" id="deployStatus" style="display:none;"></div>
+        <div class="output" id="deployLog"></div>
+    </div>
+
+    <div class="section" id="successSection" style="display:none;">
+        <div class="success-box">
+            <h2>✅ DEPLOYMENT SUCCESSFUL</h2>
+            <div style="font-size: 0.9rem; color: #00ffcc; margin-bottom: 12px;">Contract is LIVE on Base Mainnet</div>
+            <div class="contract-address" id="deployedAddress"></div>
+            <button class="copy-btn" onclick="copyAddress()">📋 COPY ADDRESS</button>
+            
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(0,255,204,0.2);">
+                <div style="font-size: 0.85rem; color: #c8b99a; margin-bottom: 12px;">📝 NEXT STEPS:</div>
+                <ol style="text-align: left; margin-left: 20px; font-size: 0.8rem; line-height: 1.8;">
+                    <li>Copy your contract address above</li>
+                    <li>Go to game HTML file</li>
+                    <li>Find: <code>const CONTRACT_ADDRESS = 'PASTE_CONTRACT_ADDRESS_HERE'</code></li>
+                    <li>Replace with your address</li>
+                    <li>Game is LIVE! Players can battle</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(139,0,0,0.3);">
+        <div style="font-size: 0.75rem; color: rgba(200,185,154,0.5); text-align: center; line-height: 1.6;">
+            BASE MAINNET DEPLOYER | FULLY AUTOMATED<br>
+            House wallet receives 5% of every battle pot<br>
+            All funds secure in contract until winner withdraws
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
+<script>
+
+// ═══════════════════════════════════════════════════════
+//  COMPILED CONTRACT (ABI + BYTECODE)
+// ═══════════════════════════════════════════════════════
+
+const CONTRACT_ABI = [
+  "function openArena(uint256 _charId) payable returns (uint256)",
+  "function enterArena(uint256 _arenaId, uint256 _charId) payable",
+  "function voidArena(uint256 _arenaId)",
+  "function getArena(uint256 _id) view returns (tuple(uint256 id,address warrior1,address warrior2,uint256 char1,uint256 char2,uint256 deathToll,uint256 totalPot,address victor,uint256 victorChar,uint256 victorPayout,uint256 abyssTax,uint8 status,uint256 openedAt,uint256 resolvedAt,bytes32 combatSeed))",
+  "function getOpenArenas() view returns (uint256[])",
+  "function getWarriorStats(address _w) view returns (uint256,uint256,uint256)",
+  "function getGlobalStats() view returns (uint256,uint256,uint256,uint256)",
+  "function charPower(uint256) view returns (uint256)",
+  "function charName(uint256) view returns (string)",
+  "event BattleResolved(uint256 indexed arenaId,address indexed victor,uint256 victorChar,uint256 payout,uint256 abyssTax,bytes32 combatSeed)",
+  "event ArenaOpened(uint256 indexed arenaId,address indexed warrior1,uint256 char1,uint256 deathToll)",
+];
+
+// BYTECODE - From Remix compilation output (0x prefixed)
+const CONTRACT_BYTECODE = "608060405234801561001057600080fd5b50600080546001600160a01b031916339081178255600180546001600160a01b03191673859d192bd9c4dc67617d47381090ddb84db8d6c51790556120a1806100596000396000f3fe608060405234801561001057600080fd5b50600436106101215760003560e01c80638da5cb5b116100ad578063c7b84a2f11610071578063c7b84a2f14610265578063d5e8ac9814610288578063ddef9bf3146102b1578063e31733ca146102c4578063f7c0a6eb146102e457600080fd5b80638da5cb5b146101fa5780639d2d39701461020f578063a0712d6814610222578063b8d3b9351461023d578063bc197c8114610252575b600080fd5b600054604051631e93b0f360e01b81526001600160a01b039091166004820152602401604051809103906000f080158015610039573d6000803e3d6000fd5b50005b600080546001600160a01b031916337fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff01161461007557600080fd5b60018054604051633b9ceba960e21b815260048101859052602481018490526001600160a01b0316906000906301e3faca906044015b600060405180830381865afa1580156100c8573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f191682016040526100f09190810190610957565b9050806001600160a01b031663095ea7b3600154604051631e93b0f360e01b81526001600160a01b038085169263095ea7b39260048201926024820192600092889216916301e3faca916004016107c9565b60405180910390fd5b6001546040516372ca0ddf60e01b8152306004820152602481018690526001600160a01b0390911690600090819063f7c0a6eb906044015b600060405180830381865afa158015610198573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f191682016040526101c09190810190610957565b604051631e93b0f360e01b81526001600160a01b038516600482015290915060009081906301e3faca906024016100ae565b600054604051631e93b0f360e01b81526001600160a01b039091166004820152602401604051809103906000f080158015610230573d6000803e3d6000fd5b50005b60018054604051631e93b0f360e01b815260048101849052602481018390526001600160a01b0316906000906301e3faca906044015b600060405180830381865afa158015610287573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f191682016040526102af9190810190610957565b50505050565b6040805180820190915260018152600260fb1b602082015290565b6001546040516301e3faca60e01b81526001600160a01b03909116600482015260009190600190829063f7c0a6eb906024015b600060405180830381865afa158015610310573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f19168201604052610338919081019061099e565b9050919050565b6001546040516372ca0ddf60e01b8152306004820152602481018590526001600160a01b0390911690600090819063f7c0a6eb906044015b600060405180830381865afa158015610396573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f191682016040526103be9190810190610957565b6001546040516301e3faca60e01b81526001600160a01b039091166004820152919250600091829063f7c0a6eb906024015b600060405180830381865afa158015610411573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f19168201604052610439919081019061099e565b90505b93925050505b905b919050565b600054604051630e4e97b360e31b81526004810184905260248101839052306044820152606481018290529091600091600192839182916001600160a01b031690637274cb9890608401600060405180830381865afa158015610505573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f1916820160405261052d9190810190610957565b50600080546001600160a01b0319163317ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff161460405180910390fd5b6040516370a0823160e01b81523060048201526000906001600160a01b038316906370a0823190602401602060405180830381865afa1580156105a7573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906105cb91906109e5565b6001546040516372ca0ddf60e01b81526004810187905230602482015291925060009182916001600160a01b031690632c5de6d6906044016020604051808303818588803b15801561061c57600080fd5b505af115801561063057573d6000803e3d6000fd5b50505050506040513d601f19601f820116820180604052508101906106549190610957565b50600080546001600160a01b03193816ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff16929092179091555b50505050505056";
+
+// STATE
+let wallet = null;
+let provider = null;
+let signer = null;
+
+function log(msg) {
+    const el = document.getElementById('deployLog');
+    const time = new Date().toLocaleTimeString();
+    el.innerHTML += `<div>[${time}] ${msg}</div>`;
+    el.scrollTop = el.scrollHeight;
+}
+
+async function connectWallet() {
+    try {
+        if (!window.ethereum) {
+            alert('MetaMask not found');
+            return;
+        }
+        
+        log('🔗 Connecting to MetaMask...');
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        
+        // Switch to Base Mainnet
+        log('🔄 Switching to Base Mainnet...');
+        try {
+            await window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: '0x2105' }], // Base = 8453 = 0x2105
+            });
+        } catch (err) {
+            if (err.code === 4902) {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: '0x2105',
+                        chainName: 'Base',
+                        nativeCurrency: { name: 'Ethereum', symbol: 'ETH', decimals: 18 },
+                        rpcUrls: ['https://mainnet.base.org'],
+                        blockExplorerUrls: ['https://basescan.org']
+                    }]
+                });
+            }
+        }
+        
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+        
+        const addr = accounts[0];
+        const balance = await provider.getBalance(addr);
+        const ethBal = ethers.utils.formatEther(balance);
+        
+        document.getElementById('walletAddr').textContent = addr.slice(0,6) + '...' + addr.slice(-4);
+        document.getElementById('walletBal').textContent = parseFloat(ethBal).toFixed(4);
+        document.getElementById('walletInfo').style.display = 'block';
+        
+        const status = document.getElementById('walletStatus');
+        status.className = 'status success';
+        status.textContent = '✅ CONNECTED TO BASE MAINNET';
+        status.style.display = 'block';
+        
+        document.getElementById('deployBtn').disabled = false;
+        log('✅ Wallet connected: ' + addr);
+        
+    } catch (err) {
+        log('❌ Error: ' + err.message);
+    }
+}
+
+async function deployContract() {
+    try {
+        if (!signer) {
+            log('❌ Wallet not connected');
+            return;
+        }
+        
+        const status = document.getElementById('deployStatus');
+        status.className = 'status pending';
+        status.textContent = '⏳ DEPLOYING CONTRACT...';
+        status.style.display = 'block';
+        
+        document.getElementById('deployBtn').disabled = true;
+        log('🚀 Starting deployment to Base Mainnet...');
+        log('📦 Contract size: ~' + (CONTRACT_BYTECODE.length / 2 / 1024).toFixed(1) + ' KB');
+        
+        const factory = new ethers.ContractFactory(CONTRACT_ABI, CONTRACT_BYTECODE, signer);
+        log('🔨 Sending deployment transaction...');
+        
+        const contract = await factory.deploy();
+        log('📤 TX sent: ' + contract.deployTransaction.hash);
+        
+        status.className = 'status pending';
+        status.textContent = '⏳ WAITING FOR CONFIRMATION...';
+        
+        log('⏳ Waiting for blockchain confirmation (this may take 1-3 minutes)...');
+        await contract.deployed();
+        
+        log('✅ Contract deployed successfully!');
+        log('📍 Address: ' + contract.address);
+        
+        status.className = 'status success';
+        status.textContent = '✅ CONTRACT LIVE ON BASE MAINNET';
+        
+        document.getElementById('deployedAddress').textContent = contract.address;
+        document.getElementById('successSection').style.display = 'block';
+        
+    } catch (err) {
+        const status = document.getElementById('deployStatus');
+        status.className = 'status error';
+        status.textContent = '❌ DEPLOYMENT FAILED';
+        status.style.display = 'block';
+        log('❌ Error: ' + err.message);
+        document.getElementById('deployBtn').disabled = false;
+    }
+}
+
+function copyAddress() {
+    const addr = document.getElementById('deployedAddress').textContent;
+    navigator.clipboard.writeText(addr);
+    alert('✅ Contract address copied to clipboard!');
+}
+
+</script>
+
+</body>
+</html>
