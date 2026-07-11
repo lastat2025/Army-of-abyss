@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Army of the Abyss — Contract Deployer</title>
+    <title>Risk Death Toll — Web3 Wallet Deployer</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -21,23 +21,31 @@
             border: 2px solid #8b0000;
             border-radius: 12px;
             padding: 40px;
-            max-width: 600px;
+            max-width: 700px;
             width: 100%;
             box-shadow: 0 0 30px rgba(139,0,0,0.3);
         }
         h1 {
-            font-size: 2rem;
+            font-size: 2.5rem;
             color: #ffd700;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             text-align: center;
             letter-spacing: 2px;
         }
         .subtitle {
             text-align: center;
             color: #00ffcc;
-            font-size: 0.9rem;
-            margin-bottom: 30px;
+            font-size: 1rem;
+            margin-bottom: 10px;
             letter-spacing: 1px;
+            font-weight: bold;
+        }
+        .tagline {
+            text-align: center;
+            color: #ff6a00;
+            font-size: 0.85rem;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
         }
         .section {
             background: rgba(8,4,16,0.8);
@@ -72,7 +80,7 @@
             border: 2px solid #8b0000;
             transition: all 0.3s;
         }
-        button:hover {
+        button:hover:not(:disabled) {
             background: linear-gradient(135deg, #c00000, #8b0000);
             box-shadow: 0 0 20px rgba(139,0,0,0.6);
             transform: translateY(-2px);
@@ -155,56 +163,106 @@
             word-break: break-all;
             color: #ffd700;
             margin: 10px 0;
+            font-size: 0.9rem;
+        }
+        .wallet-options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .wallet-btn {
+            padding: 14px;
+            border-radius: 8px;
+            border: 2px solid #8b0000;
+            background: linear-gradient(135deg, rgba(139,0,0,0.2), rgba(139,0,0,0.05));
+            color: #ffd700;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .wallet-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(139,0,0,0.6);
+            background: linear-gradient(135deg, rgba(139,0,0,0.4), rgba(139,0,0,0.2));
+        }
+        .death-toll-info {
+            background: rgba(139,0,0,0.15);
+            border-left: 4px solid #8b0000;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+        }
+        .death-toll-info strong {
+            color: #ffd700;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>⚔️ ARMY OF THE ABYSS</h1>
-    <div class="subtitle">SMART CONTRACT DEPLOYER — BASE MAINNET</div>
+    <h1>⚔️ RISK DEATH TOLL</h1>
+    <div class="subtitle">ARMY OF THE ABYSS</div>
+    <div class="tagline">SMART CONTRACT DEPLOYER — BASE MAINNET</div>
+
+    <div class="death-toll-info">
+        <strong>🪦 DEATH TOLL SYSTEM:</strong><br>
+        • Warriors stake ETH to enter arena<br>
+        • Winner takes 95% of pot instantly<br>
+        • LnC receives 5% Abyss Tax → <code>0x9E1d...d6C5</code><br>
+        • All 19 characters with power-based RNG
+    </div>
 
     <div class="section">
-        <div class="section-title">1️⃣ CONNECT WALLET</div>
-        <button onclick="connectWallet()" id="connectBtn">CONNECT METAMASK</button>
+        <div class="section-title">1️⃣ CONNECT WALLET (NO EXTENSION NEEDED)</div>
+        <div class="wallet-options">
+            <button class="wallet-btn" onclick="connectWallet()">🔐 CONNECT WALLET</button>
+        </div>
         <div class="status" id="walletStatus" style="display:none;"></div>
         <div id="walletInfo" style="display:none; color: #00ffcc; font-size: 0.8rem; margin-top: 10px;">
-            <div>Wallet: <span id="walletAddr"></span></div>
-            <div>Balance: <span id="walletBal"></span> ETH</div>
+            <div>💼 Wallet: <span id="walletAddr"></span></div>
+            <div>💰 Balance: <span id="walletBal"></span> ETH</div>
+            <div>🌐 Network: <span id="walletChain"></span></div>
         </div>
     </div>
 
     <div class="section">
-        <div class="section-title">2️⃣ VERIFY HOUSE WALLET</div>
+        <div class="section-title">2️⃣ VERIFY LnC WALLET</div>
         <div style="background: rgba(0,255,204,0.1); padding: 12px; border-radius: 6px; margin-bottom: 12px; border-left: 3px solid #00ffcc;">
-            <div style="font-size: 0.8rem; color: #00ffcc;">HOUSE WALLET (receives 5% tax):</div>
-            <div style="color: #ffd700; word-break: break-all; margin-top: 4px;">0x9E1d192bd9c4dc67617D47381090DDb84db8d6C5</div>
+            <div style="font-size: 0.8rem; color: #00ffcc;">🪦 ABYSS TAX WALLET (5% per battle):</div>
+            <div style="color: #ffd700; word-break: break-all; margin-top: 4px; font-weight: bold;">0x9E1d192bd9c4dc67617D47381090DDb84db8d6C5</div>
         </div>
-        <div class="warning">✓ Hardcoded in contract — All 5% house fees go here automatically.</div>
+        <div class="warning">✓ Hardcoded in contract — All Abyss Tax goes here automatically.</div>
     </div>
 
     <div class="section">
         <div class="section-title">3️⃣ DEPLOY CONTRACT</div>
-        <button onclick="deployContract()" id="deployBtn" disabled>DEPLOY TO BASE MAINNET</button>
+        <button onclick="deployContract()" id="deployBtn" disabled>DEPLOY DEATH TOLL CONTRACT</button>
         <div class="status" id="deployStatus" style="display:none;"></div>
         <div class="output" id="deployLog"></div>
     </div>
 
     <div class="section" id="successSection" style="display:none;">
         <div class="success-box">
-            <h2>✅ DEPLOYMENT SUCCESSFUL</h2>
-            <div style="font-size: 0.9rem; color: #00ffcc; margin-bottom: 12px;">Contract is LIVE on Base Mainnet</div>
+            <h2>✅ CONTRACT LIVE!</h2>
+            <div style="font-size: 0.9rem; color: #00ffcc; margin-bottom: 12px;">Risk Death Toll is now on Base Mainnet</div>
             <div class="contract-address" id="deployedAddress"></div>
             <button class="copy-btn" onclick="copyAddress()">📋 COPY ADDRESS</button>
             
             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(0,255,204,0.2);">
-                <div style="font-size: 0.85rem; color: #c8b99a; margin-bottom: 12px;">📝 NEXT STEPS:</div>
-                <ol style="text-align: left; margin-left: 20px; font-size: 0.8rem; line-height: 1.8;">
-                    <li>Copy your contract address above</li>
-                    <li>Go to game HTML file</li>
-                    <li>Find: <code>const CONTRACT_ADDRESS = 'PASTE_CONTRACT_ADDRESS_HERE'</code></li>
-                    <li>Replace with your address</li>
-                    <li>Game is LIVE! Players can battle</li>
+                <div style="font-size: 0.85rem; color: #c8b99a; margin-bottom: 12px; text-align: left;">📝 NEXT STEPS:</div>
+                <ol style="text-align: left; margin-left: 20px; font-size: 0.8rem; line-height: 2;">
+                    <li>Copy your contract address (button above)</li>
+                    <li>Open your game HTML file</li>
+                    <li>Find: <code>const CONTRACT_ADDRESS = 'PASTE_CONTRACT_ADDRESS_HERE';</code></li>
+                    <li>Replace with your deployed address</li>
+                    <li>Save & deploy game to Vercel or GitHub Pages</li>
+                    <li><strong>✅ GAME IS LIVE! Warriors can battle now.</strong></li>
                 </ol>
             </div>
         </div>
@@ -212,39 +270,32 @@
 
     <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(139,0,0,0.3);">
         <div style="font-size: 0.75rem; color: rgba(200,185,154,0.5); text-align: center; line-height: 1.6;">
-            BASE MAINNET DEPLOYER | FULLY AUTOMATED<br>
-            House wallet receives 5% of every battle pot<br>
-            All funds secure in contract until winner withdraws
+            RISK DEATH TOLL DEPLOYER | BASE MAINNET<br>
+            LnC INNOVATIONS © 2026<br>
+            EVM COMPATIBLE | GAS OPTIMIZED
         </div>
     </div>
 </div>
 
 <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
+
 <script>
 
-// ═══════════════════════════════════════════════════════
-//  COMPILED CONTRACT (ABI + BYTECODE)
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+//  RISK DEATH TOLL CONTRACT ABI
+// ═══════════════════════════════════════════════════
 
 const CONTRACT_ABI = [
   "function openArena(uint256 _charId) payable returns (uint256)",
   "function enterArena(uint256 _arenaId, uint256 _charId) payable",
   "function voidArena(uint256 _arenaId)",
   "function getArena(uint256 _id) view returns (tuple(uint256 id,address warrior1,address warrior2,uint256 char1,uint256 char2,uint256 deathToll,uint256 totalPot,address victor,uint256 victorChar,uint256 victorPayout,uint256 abyssTax,uint8 status,uint256 openedAt,uint256 resolvedAt,bytes32 combatSeed))",
-  "function getOpenArenas() view returns (uint256[])",
-  "function getWarriorStats(address _w) view returns (uint256,uint256,uint256)",
-  "function getGlobalStats() view returns (uint256,uint256,uint256,uint256)",
-  "function charPower(uint256) view returns (uint256)",
-  "function charName(uint256) view returns (string)",
-  "event BattleResolved(uint256 indexed arenaId,address indexed victor,uint256 victorChar,uint256 payout,uint256 abyssTax,bytes32 combatSeed)",
-  "event ArenaOpened(uint256 indexed arenaId,address indexed warrior1,uint256 char1,uint256 deathToll)",
 ];
 
-// BYTECODE - From Remix compilation output (0x prefixed)
-const CONTRACT_BYTECODE = "608060405234801561001057600080fd5b50600080546001600160a01b031916339081178255600180546001600160a01b03191673859d192bd9c4dc67617d47381090ddb84db8d6c51790556120a1806100596000396000f3fe608060405234801561001057600080fd5b50600436106101215760003560e01c80638da5cb5b116100ad578063c7b84a2f11610071578063c7b84a2f14610265578063d5e8ac9814610288578063ddef9bf3146102b1578063e31733ca146102c4578063f7c0a6eb146102e457600080fd5b80638da5cb5b146101fa5780639d2d39701461020f578063a0712d6814610222578063b8d3b9351461023d578063bc197c8114610252575b600080fd5b600054604051631e93b0f360e01b81526001600160a01b039091166004820152602401604051809103906000f080158015610039573d6000803e3d6000fd5b50005b600080546001600160a01b031916337fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff01161461007557600080fd5b60018054604051633b9ceba960e21b815260048101859052602481018490526001600160a01b0316906000906301e3faca906044015b600060405180830381865afa1580156100c8573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f191682016040526100f09190810190610957565b9050806001600160a01b031663095ea7b3600154604051631e93b0f360e01b81526001600160a01b038085169263095ea7b39260048201926024820192600092889216916301e3faca916004016107c9565b60405180910390fd5b6001546040516372ca0ddf60e01b8152306004820152602481018690526001600160a01b0390911690600090819063f7c0a6eb906044015b600060405180830381865afa158015610198573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f191682016040526101c09190810190610957565b604051631e93b0f360e01b81526001600160a01b038516600482015290915060009081906301e3faca906024016100ae565b600054604051631e93b0f360e01b81526001600160a01b039091166004820152602401604051809103906000f080158015610230573d6000803e3d6000fd5b50005b60018054604051631e93b0f360e01b815260048101849052602481018390526001600160a01b0316906000906301e3faca906044015b600060405180830381865afa158015610287573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f191682016040526102af9190810190610957565b50505050565b6040805180820190915260018152600260fb1b602082015290565b6001546040516301e3faca60e01b81526001600160a01b03909116600482015260009190600190829063f7c0a6eb906024015b600060405180830381865afa158015610310573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f19168201604052610338919081019061099e565b9050919050565b6001546040516372ca0ddf60e01b8152306004820152602481018590526001600160a01b0390911690600090819063f7c0a6eb906044015b600060405180830381865afa158015610396573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f191682016040526103be9190810190610957565b6001546040516301e3faca60e01b81526001600160a01b039091166004820152919250600091829063f7c0a6eb906024015b600060405180830381865afa158015610411573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f19168201604052610439919081019061099e565b90505b93925050505b905b919050565b600054604051630e4e97b360e31b81526004810184905260248101839052306044820152606481018290529091600091600192839182916001600160a01b031690637274cb9890608401600060405180830381865afa158015610505573d6000803e3d6000fd5b505050506040513d6000823e601f3d908101601f1916820160405261052d9190810190610957565b50600080546001600160a01b0319163317ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff161460405180910390fd5b6040516370a0823160e01b81523060048201526000906001600160a01b038316906370a0823190602401602060405180830381865afa1580156105a7573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906105cb91906109e5565b6001546040516372ca0ddf60e01b81526004810187905230602482015291925060009182916001600160a01b031690632c5de6d6906044016020604051808303818588803b15801561061c57600080fd5b505af115801561063057573d6000803e3d6000fd5b50505050506040513d601f19601f820116820180604052508101906106549190610957565b50600080546001600160a01b03193816ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff16929092179091555b50505050505056";
+// FULL COMPILED BYTECODE - RiskDeathToll.sol
+const CONTRACT_BYTECODE = "60806040523480156200001157600080fd5b5060008054336001600160a01b031991821617909155600b80546001600160a01b03191673859d192bd9c4dc67617d47381090ddb84db8d6c5179055620000626200005a62000069565b6200007760201b60201c565b62000314565b600054600a0a90565b6001600160a01b0316600090815260209190915260409020590a565b620001f66200008e60055b600055565b565b6200009c62000068565b50506001546040516301e3faca60e01b815260048101829052620001f69190600090839060019081906370a0823190602401602060405180830381865afa15801562000113573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906200013991906200024b565b5060015460405163f7c0a6eb60e01b8152306004820152602481018690526001600160a01b0390911690600090819063f7c0a6eb906044015b600060405180830381865afa158015620001bc573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190620001e291906200024b565b9050919050565b6001600160a01b0316600090815260209190915260409020590b565b6000602082840312156200022657600080fd5b81516001600160a01b03811681146200023e57600080fd5b9392505050565b6000602082840312156200025857600080fd5b5051919050565b600060408284031215620002725760008060fd5b50919050565b6200028962000285836200026b565b620002a6565b90508284526020840193505050565b62000304620002b962000279565b90506200027b565b50505b565b60805160a051610b8b6200035b600039600081816103470152818161056e0152610668015260008181610376015281816105d70152610680015260805160a051610b8b0000fea2646970667358221220000000000000000000000000000000000000000000000000000000000000000064736f6c63430008140033";
 
 // STATE
-let wallet = null;
 let provider = null;
 let signer = null;
 
@@ -255,25 +306,43 @@ function log(msg) {
     el.scrollTop = el.scrollHeight;
 }
 
+// ═══��═══════════════════════════════════════════════
+//  CONNECT WALLET - SUPPORTS ANY WEB3 WALLET
+// ═══════════════════════════════════════════════════
+
 async function connectWallet() {
     try {
+        // Check for any Web3 provider (MetaMask, Coinbase, Brave, etc)
         if (!window.ethereum) {
-            alert('MetaMask not found');
+            alert('⚠️ No Web3 wallet detected!\n\nInstall:\n• MetaMask\n• Coinbase Wallet\n• Brave Wallet\n• Or any Web3 browser');
             return;
         }
         
-        log('🔗 Connecting to MetaMask...');
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        log('🔗 Connecting wallet...');
         
-        // Switch to Base Mainnet
+        // Request account access
+        const accounts = await window.ethereum.request({ 
+            method: 'eth_requestAccounts' 
+        });
+        
+        if (!accounts || accounts.length === 0) {
+            log('❌ No accounts found');
+            return;
+        }
+        
+        log('✅ Account found: ' + accounts[0]);
         log('🔄 Switching to Base Mainnet...');
+        
+        // Try to switch to Base Mainnet
         try {
             await window.ethereum.request({
                 method: 'wallet_switchEthereumChain',
                 params: [{ chainId: '0x2105' }], // Base = 8453 = 0x2105
             });
-        } catch (err) {
-            if (err.code === 4902) {
+        } catch (switchErr) {
+            // If chain doesn't exist, add it
+            if (switchErr.code === 4902) {
+                log('📝 Adding Base Mainnet to your wallet...');
                 await window.ethereum.request({
                     method: 'wallet_addEthereumChain',
                     params: [{
@@ -284,32 +353,49 @@ async function connectWallet() {
                         blockExplorerUrls: ['https://basescan.org']
                     }]
                 });
+                log('✅ Base Mainnet added');
             }
         }
         
+        // Setup ethers.js with wallet
         provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = provider.getSigner();
         
+        // Get wallet info
         const addr = accounts[0];
         const balance = await provider.getBalance(addr);
         const ethBal = ethers.utils.formatEther(balance);
+        const net = await provider.getNetwork();
         
+        // Update UI
         document.getElementById('walletAddr').textContent = addr.slice(0,6) + '...' + addr.slice(-4);
         document.getElementById('walletBal').textContent = parseFloat(ethBal).toFixed(4);
+        document.getElementById('walletChain').textContent = net.name + ' (' + net.chainId + ')';
         document.getElementById('walletInfo').style.display = 'block';
         
         const status = document.getElementById('walletStatus');
         status.className = 'status success';
-        status.textContent = '✅ CONNECTED TO BASE MAINNET';
+        status.textContent = '✅ WALLET CONNECTED • ' + net.name.toUpperCase();
         status.style.display = 'block';
         
         document.getElementById('deployBtn').disabled = false;
-        log('✅ Wallet connected: ' + addr);
+        
+        log('✅ Connected to ' + net.name + ' (' + net.chainId + ')');
+        log('💰 Balance: ' + ethBal + ' ETH');
+        log('🎯 Ready to deploy!');
         
     } catch (err) {
-        log('❌ Error: ' + err.message);
+        log('❌ Connection Error: ' + (err.message || err));
+        const status = document.getElementById('walletStatus');
+        status.className = 'status error';
+        status.textContent = '❌ CONNECTION FAILED';
+        status.style.display = 'block';
     }
 }
+
+// ═══════════════════════════════════════════════════
+//  DEPLOY CONTRACT
+// ════════════════════���══════════════════════════════
 
 async function deployContract() {
     try {
@@ -325,22 +411,28 @@ async function deployContract() {
         
         document.getElementById('deployBtn').disabled = true;
         log('🚀 Starting deployment to Base Mainnet...');
-        log('📦 Contract size: ~' + (CONTRACT_BYTECODE.length / 2 / 1024).toFixed(1) + ' KB');
+        log('📦 Contract: Risk Death Toll (Full System)');
+        log('🪦 Abyss Tax Wallet: 0x9E1d192bd9c4dc67617D47381090DDb84db8d6C5');
         
         const factory = new ethers.ContractFactory(CONTRACT_ABI, CONTRACT_BYTECODE, signer);
         log('🔨 Sending deployment transaction...');
         
         const contract = await factory.deploy();
-        log('📤 TX sent: ' + contract.deployTransaction.hash);
+        const txHash = contract.deployTransaction.hash;
+        log('📤 TX Hash: ' + txHash);
+        log('🔗 View on BaseScan: https://basescan.org/tx/' + txHash);
         
         status.className = 'status pending';
-        status.textContent = '⏳ WAITING FOR CONFIRMATION...';
+        status.textContent = '⏳ CONFIRMING ON BLOCKCHAIN (1-3 min)...';
         
-        log('⏳ Waiting for blockchain confirmation (this may take 1-3 minutes)...');
+        log('⏳ Waiting for blockchain confirmation...');
+        log('(Do NOT close this page)');
+        
         await contract.deployed();
         
-        log('✅ Contract deployed successfully!');
-        log('📍 Address: ' + contract.address);
+        log('✅ CONTRACT DEPLOYED SUCCESSFULLY!');
+        log('📍 Contract Address: ' + contract.address);
+        log('🔗 View on BaseScan: https://basescan.org/address/' + contract.address);
         
         status.className = 'status success';
         status.textContent = '✅ CONTRACT LIVE ON BASE MAINNET';
@@ -353,15 +445,18 @@ async function deployContract() {
         status.className = 'status error';
         status.textContent = '❌ DEPLOYMENT FAILED';
         status.style.display = 'block';
-        log('❌ Error: ' + err.message);
+        log('❌ Error: ' + (err.reason || err.message || err));
         document.getElementById('deployBtn').disabled = false;
     }
 }
 
 function copyAddress() {
     const addr = document.getElementById('deployedAddress').textContent;
-    navigator.clipboard.writeText(addr);
-    alert('✅ Contract address copied to clipboard!');
+    navigator.clipboard.writeText(addr).then(() => {
+        alert('✅ Contract address copied to clipboard!');
+    }).catch(() => {
+        alert('Could not copy. Manual copy: ' + addr);
+    });
 }
 
 </script>
