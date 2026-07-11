@@ -7,58 +7,49 @@ pragma solidity ^0.8.20;
  * ║       Full Game Contract — All 19 Warriors                  ║
  * ║       LnC Tech Innovations © 2026                          ║
  * ║       Chain: Base Mainnet (8453)                           ║
- * ║       5% Abyss Tax → 0x9E1d192bd9c4dc67617D47381090DDb84db8d6C5 ║
+ * ║       10% Revenue → 0x9E1d192bd9c4dc67617D47381090DDb84db8d6C5 ║
+ * ║       LOCKED & IMMUTABLE - Only lastat2025 can change       ║
  * ╚══════════════════════════════════════════════════════════════╝
  *
  * HOW IT WORKS:
  * 1. Warrior 1 calls openArena(charId) + sends ETH (the Death Toll)
  * 2. Warrior 2 calls enterArena(arenaId, charId) + sends SAME ETH amount
  * 3. Contract instantly resolves combat — weighted by character power
- * 4. Victor receives 95% of total pot automatically
- * 5. LnC wallet receives 5% Abyss Tax automatically
- * 6. Gas paid separately by each warrior — taken off top naturally
+ * 4. Victor receives 90% of total pot automatically
+ * 5. Revenue wallet receives 10% automatically — LOCKED FOREVER
+ * 6. Gas paid separately by each warrior
  * 7. If no opponent joins in 24h — warrior 1 can void and get refund
  *
- * CHARACTER POWER SCORES (out of 10000):
- * Higher power = higher win probability — but upsets can happen!
- * #1  THE DREADLORD   9500  GENESIS
- * #2  ROTMOTHER       8200  LEGENDARY
- * #3  IRONBLIGHT      9100  EPIC
- * #4  WRAITHQUEEN     8800  LEGENDARY
- * #5  BONECRUSHER     8600  RARE
- * #6  VEXMORTA        7900  EPIC
- * #7  FROSTGRAVE      8100  EPIC
- * #8  ASHRENDER       8300  RARE
- * #9  SHADOWMELD      8700  LEGENDARY
- * #10 GORECLAW        8400  EPIC
- * #11 CRYPTLURKER     7800  RARE
- * #12 SOULHARVEST     9200  GENESIS
- * #13 THORNWALL       7700  RARE
- * #14 STORMWRAITH     8000  EPIC
- * #15 MARROWFIEND     7600  RARE
- * #16 VOIDWEAVER      9000  LEGENDARY
- * #17 PLAGUEBRINGER   7500  EPIC
- * #18 HELLFORGED      9300  GENESIS
- * #19 THE ABYSS KING  9900  GENESIS BOSS
+ * SECURITY: The revenue wallet address is IMMUTABLE after deployment.
+ * Only the contract owner (lastat2025) can modify tax rates or other settings.
+ * All 10% fees go directly to 0x9E1d192bd9c4dc67617D47381090DDb84db8d6C5
  */
 
 contract RiskDeathToll {
 
     // ═══════════════════════════════════════════════════
+    //  IMMUTABLE REVENUE WALLET (LOCKED AT DEPLOYMENT)
+    // ═══════════════════════════════════════════════════
+
+    address public constant REVENUE_WALLET = 0x9E1d192bd9c4dc67617D47381090DDb84db8d6C5;
+    
+    // CANNOT BE CHANGED - Hardcoded as constant
+    // Only lastat2025 git account can deploy new version if needed
+    
+    // ═══════════════════════════════════════════════════
     //  OWNERSHIP & FEES
     // ═══════════════════════════════════════════════════
 
-    address public owner;
-
-    // LnC wallet — receives 5% Abyss Tax on every resolved battle
-    address public lncFeeWallet = 0x9E1d192bd9c4dc67617D47381090DDb84db8d6C5;
-
-    // 500 basis points = 5.00%  (basis points: 100 = 1%)
-    uint256 public abyssTaxBps = 500;
+    address public owner; // lastat2025 — only can change tax rate, not wallet
+    
+    // 1000 basis points = 10.00% (basis points: 100 = 1%)
+    // This is the ONLY settable parameter. Wallet is LOCKED.
+    uint256 public revenueTaxBps = 1000;
 
     // Global revenue tracking
-    uint256 public totalAbyssTaxCollected;
+    uint256 public totalRevenueCollected;
     uint256 public totalDeathTollPaid;
+    uint256 public totalDeathTollDistributed;
 
     // ═══════════════════════════════════════════════════
     //  ARENA SETTINGS
@@ -103,8 +94,8 @@ contract RiskDeathToll {
         uint256     totalPot;       // deathToll * 2
         address     victor;         // winner address
         uint256     victorChar;     // winner character ID
-        uint256     victorPayout;   // ETH sent to victor (95%)
-        uint256     abyssTax;       // ETH sent to LnC (5%)
+        uint256     victorPayout;   // ETH sent to victor (90%)
+        uint256     revenueCut;     // ETH sent to revenue wallet (10%)
         ArenaStatus status;
         uint256     openedAt;       // timestamp
         uint256     resolvedAt;     // timestamp
@@ -151,7 +142,7 @@ contract RiskDeathToll {
         uint256 victorChar,
         string  victorName,
         uint256 payout,
-        uint256 abyssTax,
+        uint256 revenueCut,
         bytes32 combatSeed
     );
     event ArenaVoided(
@@ -160,7 +151,7 @@ contract RiskDeathToll {
         uint256 refund
     );
     event LeaderboardUpdated(address indexed warrior, uint256 totalWon);
-    event AbyssTaxCollected(uint256 indexed arenaId, uint256 amount);
+    event RevenueCollected(uint256 indexed arenaId, uint256 amount, address indexed revenueWallet);
 
     // ═══════════════════════════════════════════════════
     //  SECURITY — REENTRANCY GUARD
@@ -229,11 +220,6 @@ contract RiskDeathToll {
     //  OPEN ARENA — Warrior 1 stakes Death Toll
     // ═══════════════════════════════════════════════════
 
-    /**
-     * @notice Open an arena. Stake your Death Toll (ETH) and pick your warrior.
-     * @param _charId Your warrior ID (1-19). See character list above.
-     * @return arenaId Share this ID with your opponent so they can enter.
-     */
     function openArena(uint256 _charId)
         external
         payable
@@ -258,7 +244,7 @@ contract RiskDeathToll {
             victor:       address(0),
             victorChar:   0,
             victorPayout: 0,
-            abyssTax:     0,
+            revenueCut:   0,
             status:       ArenaStatus.OPEN,
             openedAt:     block.timestamp,
             resolvedAt:   0,
@@ -278,11 +264,6 @@ contract RiskDeathToll {
     //  ENTER ARENA — Warrior 2 matches Death Toll & FIGHT
     // ═══════════════════════════════════════════════════
 
-    /**
-     * @notice Enter an open arena. Match the exact Death Toll. Battle resolves instantly.
-     * @param _arenaId The arena ID your opponent shared with you.
-     * @param _charId  Your warrior ID (1-19).
-     */
     function enterArena(uint256 _arenaId, uint256 _charId)
         external
         payable
@@ -322,17 +303,12 @@ contract RiskDeathToll {
         Character memory c1 = characters[a.char1];
         Character memory c2 = characters[a.char2];
 
-        // Total power pool — determines win probability
-        // e.g. char1 power 9500 vs char2 power 7500 = 17000 total
-        // char1 wins if roll < 9500 = 55.8% chance
-        // char2 wins if roll >= 9500 = 44.2% chance
         uint256 totalPower = c1.power + c2.power;
 
         // Multi-source entropy combat seed
-        // Stored on-chain for full transparency and verifiability
         bytes32 seed = keccak256(abi.encodePacked(
             block.timestamp,
-            block.prevrandao,           // EIP-4399 RANDAO
+            block.prevrandao,
             blockhash(block.number - 1),
             a.warrior1,
             a.warrior2,
@@ -362,34 +338,36 @@ contract RiskDeathToll {
         }
 
         // ── DEATH TOLL SPLIT ────────────────────────────
-        // Total pot split: 95% to victor, 5% to LnC
-        uint256 pot     = a.totalPot;
-        uint256 tax     = (pot * abyssTaxBps) / 10000;
-        uint256 payout  = pot - tax;
+        // Total pot split: 90% to victor, 10% to REVENUE_WALLET
+        uint256 pot          = a.totalPot;
+        uint256 revenueCut   = (pot * revenueTaxBps) / 10000;
+        uint256 victorPayout = pot - revenueCut;
 
         // Update arena record
         a.victor        = victor;
         a.victorChar    = victorChar;
-        a.victorPayout  = payout;
-        a.abyssTax      = tax;
+        a.victorPayout  = victorPayout;
+        a.revenueCut    = revenueCut;
         a.status        = ArenaStatus.RESOLVED;
         a.resolvedAt    = block.timestamp;
         a.combatSeed    = seed;
 
         // Update warrior stats
         totalVictories[victor]++;
-        totalDeathTollWon[victor] += payout;
-        totalAbyssTaxCollected    += tax;
-        totalDeathTollPaid        += pot;
+        totalDeathTollWon[victor] += victorPayout;
+        totalRevenueCollected    += revenueCut;
+        totalDeathTollPaid       += pot;
+        totalDeathTollDistributed += victorPayout;
 
         // ── AUTOMATIC PAYOUTS ───────────────────────────
-        // Victor gets 95% — instant transfer, no claiming needed
-        (bool victorPaid,) = payable(victor).call{value: payout}("");
+        // Victor gets 90% — instant transfer, no claiming needed
+        (bool victorPaid,) = payable(victor).call{value: victorPayout}("");
         require(victorPaid, "Victor payout failed");
 
-        // LnC gets 5% Abyss Tax — instant transfer
-        (bool taxPaid,) = payable(lncFeeWallet).call{value: tax}("");
-        require(taxPaid, "Abyss Tax transfer failed");
+        // Revenue wallet gets 10% — DIRECT TO LOCKED WALLET
+        // THIS CANNOT BE CHANGED - ADDRESS IS CONSTANT
+        (bool revenuePaid,) = payable(REVENUE_WALLET).call{value: revenueCut}("");
+        require(revenuePaid, "Revenue transfer failed");
 
         // Update leaderboard
         _updateLeaderboard(victor);
@@ -397,18 +375,15 @@ contract RiskDeathToll {
         emit BattleResolved(
             _arenaId, victor, loser,
             victorChar, characters[victorChar].name,
-            payout, tax, seed
+            victorPayout, revenueCut, seed
         );
-        emit AbyssTaxCollected(_arenaId, tax);
+        emit RevenueCollected(_arenaId, revenueCut, REVENUE_WALLET);
     }
 
     // ═══════════════════════════════════════════════════
     //  VOID ARENA — Get refund if no challenger in 24h
     // ═══════════════════════════════════════════════════
 
-    /**
-     * @notice If no opponent joined after 24h, warrior1 can void and get full refund.
-     */
     function voidArena(uint256 _arenaId) external noReenter {
         Arena storage a = arenas[_arenaId];
         require(a.warrior1 == msg.sender,                       "Not your arena");
@@ -419,7 +394,7 @@ contract RiskDeathToll {
         _removeFromOpen(_arenaId);
 
         uint256 refund = a.deathToll;
-        totalDeathTollRisked[msg.sender] -= refund; // reverse the risk since it was voided
+        totalDeathTollRisked[msg.sender] -= refund;
 
         (bool sent,) = payable(msg.sender).call{value: refund}("");
         require(sent, "Refund failed");
@@ -433,15 +408,12 @@ contract RiskDeathToll {
 
     function _updateLeaderboard(address _warrior) internal {
         if (onLeaderboard[_warrior]) {
-            // Already on board — re-sort
             _sortLeaderboard();
             return;
         }
-        // Check if they beat anyone on the board
         for (uint256 i = 0; i < 10; i++) {
             if (leaderboard[i] == address(0) ||
                 totalDeathTollWon[_warrior] > totalDeathTollWon[leaderboard[i]]) {
-                // Shift down and insert
                 for (uint256 j = 9; j > i; j--) {
                     leaderboard[j] = leaderboard[j-1];
                     if (leaderboard[j] != address(0)) onLeaderboard[leaderboard[j]] = true;
@@ -473,22 +445,18 @@ contract RiskDeathToll {
     //  VIEW FUNCTIONS — Read all game data
     // ═══════════════════════════════════════════════════
 
-    /// @notice Get full arena data
     function getArena(uint256 _id) external view returns (Arena memory) {
         return arenas[_id];
     }
 
-    /// @notice Get all currently open arena IDs
     function getOpenArenas() external view returns (uint256[] memory) {
         return openArenaIds;
     }
 
-    /// @notice Get all arena IDs a warrior has participated in
     function getWarriorHistory(address _w) external view returns (uint256[] memory) {
         return warriorHistory[_w];
     }
 
-    /// @notice Get warrior stats
     function getWarriorStats(address _w) external view returns (
         uint256 arenas_,
         uint256 victories_,
@@ -503,35 +471,31 @@ contract RiskDeathToll {
         );
     }
 
-    /// @notice Get global contract stats
     function getGlobalStats() external view returns (
         uint256 totalArenas_,
         uint256 totalPaid_,
-        uint256 totalTax_,
+        uint256 totalRevenue_,
         uint256 contractBalance_
     ) {
         return (
             arenaCount,
             totalDeathTollPaid,
-            totalAbyssTaxCollected,
+            totalRevenueCollected,
             address(this).balance
         );
     }
 
-    /// @notice Get character info
     function getCharacter(uint256 _id) external view returns (Character memory) {
         require(_id >= 1 && _id <= TOTAL_CHARS, "Invalid ID");
         return characters[_id];
     }
 
-    /// @notice Get all 19 character power scores at once
     function getAllPowers() external view returns (uint256[19] memory powers) {
         for (uint256 i = 0; i < 19; i++) {
             powers[i] = characters[i+1].power;
         }
     }
 
-    /// @notice Get top 10 leaderboard
     function getLeaderboard() external view returns (
         address[10] memory warriors,
         uint256[10] memory ethWon_,
@@ -546,18 +510,16 @@ contract RiskDeathToll {
         }
     }
 
-    /// @notice Calculate expected payout for a given Death Toll
     function calcPayout(uint256 _deathToll) external view returns (
         uint256 pot,
         uint256 victorPayout,
-        uint256 abyssTax_
+        uint256 revenueCut_
     ) {
         pot          = _deathToll * 2;
-        abyssTax_    = (pot * abyssTaxBps) / 10000;
-        victorPayout = pot - abyssTax_;
+        revenueCut_  = (pot * revenueTaxBps) / 10000;
+        victorPayout = pot - revenueCut_;
     }
 
-    /// @notice Get win probability for char1 vs char2 (returns basis points)
     function getWinChance(uint256 _char1, uint256 _char2) external view returns (
         uint256 char1WinBps,
         uint256 char2WinBps
@@ -571,19 +533,14 @@ contract RiskDeathToll {
     }
 
     // ═══════════════════════════════════════════════════
-    //  ADMIN — Owner only
+    //  ADMIN — Owner only (lastat2025)
     // ═══════════════════════════════════════════════════
 
-    /// @notice Update LnC fee wallet
-    function setLncFeeWallet(address _w) external onlyOwner {
-        require(_w != address(0), "Zero address");
-        lncFeeWallet = _w;
-    }
-
-    /// @notice Adjust Abyss Tax (max 10%)
-    function setAbyssTax(uint256 _bps) external onlyOwner {
-        require(_bps <= 1000, "Max 10%");
-        abyssTaxBps = _bps;
+    /// @notice Adjust revenue tax rate (max 20%)
+    /// @dev REVENUE_WALLET address CANNOT be changed — it is immutable
+    function setRevenueTax(uint256 _bps) external onlyOwner {
+        require(_bps <= 2000, "Max 20%");
+        revenueTaxBps = _bps;
     }
 
     /// @notice Update a character's power score
@@ -593,7 +550,7 @@ contract RiskDeathToll {
         characters[_id].power = _power;
     }
 
-    /// @notice Transfer ownership
+    /// @notice Transfer ownership to new address
     function transferOwnership(address _new) external onlyOwner {
         require(_new != address(0), "Zero address");
         owner = _new;
@@ -614,7 +571,6 @@ contract RiskDeathToll {
         }
     }
 
-    /// @dev Block direct ETH sends — use openArena or enterArena
     receive() external payable {
         revert("AOTA: Send ETH via openArena() or enterArena()");
     }
